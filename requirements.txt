@@ -1,0 +1,5 @@
+numpy==2.4.6
+opencv-contrib-python==4.13.0.92
+opencv-python==4.13.0.92
+pillow==12.2.0
+pyglet==2.1.14
