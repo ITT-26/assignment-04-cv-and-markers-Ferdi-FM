@@ -82,4 +82,5 @@ Make sure you got the playing-field the right way round!
         Game Over when one ballon is outofbounds at the bottom
     - For the best experience keep your finger close to the playing field
     - **Don't cheat by using your whole hand!**
+    - Contours can be switched on/off by pressing "C"
 5. Have Fun!

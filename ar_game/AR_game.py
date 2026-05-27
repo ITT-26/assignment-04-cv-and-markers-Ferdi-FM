@@ -93,6 +93,7 @@ class Game():
         self.time_counter = 0
         self.hardMode = True
         self.game_over = True
+        self.show_Contours = False
         self.time_counter_label = pyglet.text.Label(
             "Mode: Hard | Time: 0.00s", 
             x=0, 
@@ -104,7 +105,7 @@ class Game():
             color=(0, 0, 0)
             )
         self.game_over_label = pyglet.text.Label(
-            "Press 'S' to Start\nPress 'M' to select difficulty!",
+            "Press 'S' to Start\nPress 'M' to select difficulty!\n Press 'C' to show contours",
             x=window.width//2,
             y=window.height//2,
             width=window.width,
@@ -205,7 +206,8 @@ class Game():
         threshold = mean - 40
         
         if mean < 205: #210 was the mean when i put a (white) light above the playing field
-            ret, thresh = cv2.threshold(img_gray, threshold, 255, cv2.THRESH_BINARY_INV) #inverse since without the border of the window gets picked up as contour, static threshold since i also tried with + cv2.THRESH_OTSU and the results werent as good
+            #thresh = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, blockSize=69, C=15) #is much better for shadows, but doesn't get the whole finger and has a big delay, but outline and tip get detected quite well (but too slow)
+            ret, thresh = cv2.threshold(img_gray, threshold, 255, cv2.THRESH_BINARY_INV) #inverse since without the border of the window gets picked up as contour, i also tried with + cv2.THRESH_OTSU and the results werent as good
             kernel = np.ones((5, 5), np.uint8)
             cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
             cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, kernel, iterations=2)
@@ -303,8 +305,10 @@ class Game():
         if trans_frame is not None:
             self.image_Found = True
             contours = self.get_Game_Object_Contours(trans_frame)
-            trans_frame = cv2.drawContours(trans_frame, contours, -1, (255, 0, 0), 3) #couldn't decide if contours should be drawn..
-            
+            if self.show_Contours:
+                trans_frame = cv2.drawContours(trans_frame, contours, -1, (200, 50, 50), 3) #couldn't decide if contours should be drawn..
+
+
             for ballon in self.ballons:
                 hit = self.ballon_hit_contour(contours, ballon, trans_frame)
                 if not ballon.out_of_bounds and hit is not None:
@@ -331,10 +335,12 @@ class Game():
             self.game_over = False
             self.ballons = self.initBallons()
             self.time_counter = 0
-        if symbol == pyglet.window.key.M and self.time_counter == 0:
+        if symbol == pyglet.window.key.M and self.game_over:
             self.hardMode = not self.hardMode
             mode_string = "Hard" if self.hardMode else "Easy"
             self.time_counter_label.text = f"Mode: {mode_string} | Time: {self.time_counter:.2f}s"
+        if symbol == pyglet.window.key.C:
+            self.show_Contours = not self.show_Contours
         if symbol == pyglet.window.key.Q:
             pyglet.app.exit()
             os._exit(0)
